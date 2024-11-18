@@ -1,7 +1,7 @@
 -- use sysadmin role.
 use role sysadmin;
 
--- create a warehoue before you try this..
+-- create a warehoue before you try this.
 
 -- create development database/schema  if does not exist
 create database if not exists dev_db;
