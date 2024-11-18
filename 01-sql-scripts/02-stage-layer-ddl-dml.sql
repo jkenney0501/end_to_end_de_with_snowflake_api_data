@@ -10,6 +10,16 @@ readable but also adds a few audit columns for file/file location and load time.
 
 From here, the clean layer will flatten the data out and prepare it for consumption.
 
+
+***** Snowflake interview questions:*****
+
+-- could you explain the metadata properties: referneces location,  if loaded or skipped and compression /format used.
+-- why should you use metadata properties: audit purposes. Monitor schema, table properties, and storage usage. Timestamp shows load date.
+-- how these metadata properties helps you: 
+-- the table naming convention while building: use the same acrsoss the board. meta uses _ as a prefix.
+-- 16Mb limitations:
+
+
 *****************************************************************************************************/
 
 -- change context
@@ -79,14 +89,6 @@ from @dev_db.stage_sch.raw_stg
 
 
 
--- @todo interview tag...
--- could you explain the metadata properties
--- why should you use metadata properties
--- how these metadata properties helps you 
--- the table naming convention while building 
--- 16Mb limitations
-
-  
 -- creating a raw table to have air quality data
 create or replace transient table raw_aqi (
     id int primary key autoincrement,
@@ -114,7 +116,7 @@ describe table raw_aqi;
 -- following copy command
 create or replace task copy_air_quality_data
     warehouse = load_wh
-    schedule = 'USING CRON 0 * * * * Asia/Kolkata'
+    schedule = 'USING CRON */5 * * * * Asia/Kolkata'  -- set to run every 5 minutes given there are 24 files, one for every hour. This load is all at once b/s manual load.
 as
 copy into raw_aqi (index_record_ts,json_data,record_count,json_version,_stg_file_name,_stg_file_load_ts,_stg_file_md5,_copy_data_ts) from 
 (
@@ -147,10 +149,20 @@ select *
     from raw_aqi
     limit 10;
 
--- select with ranking
+
+
+
+-- select with ranking to prpepare to eliminate dups in clean layer
 select 
-    index_record_ts,record_count,json_version,_stg_file_name,_stg_file_load_ts,_stg_file_md5 ,_copy_data_ts,
-    row_number() over (partition by index_record_ts order by _stg_file_load_ts desc) as latest_file_rank
+    index_record_ts,record_count,
+    json_version,_stg_file_name,
+    _stg_file_load_ts,
+    _stg_file_md5,
+    _copy_data_ts,
+    row_number() over (partition by index_record_ts order by _stg_file_load_ts desc) as latest_file_rank  -- thiss will guard against duplicates
 from raw_aqi 
 order by index_record_ts desc
 limit 10;
+
+-- suspend after initqal load given 24 files are laoded at once since they are all in the stage
+alter task dev_db.stage_sch.copy_air_quality_data suspend;

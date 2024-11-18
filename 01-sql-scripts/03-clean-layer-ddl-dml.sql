@@ -1,5 +1,13 @@
+/********************************************************************************
+Flatten, de-duplication and cleansing for clean layer.
+
+
+
+********************************************************************************/
+
+
 -- change the context
-use role sysadmin;
+--use role sysadmin;
 use schema dev_db.clean_sch;
 use warehouse adhoc_wh;
 
