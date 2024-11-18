@@ -1,4 +1,4 @@
--- create teh db's, schemas and wh's needed for the threee layers we will use.
+-- create the db's, schemas and wh's needed for the threee layers we will use.
 
 
 -- create development database/schema  if does not exist
