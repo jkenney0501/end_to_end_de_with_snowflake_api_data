@@ -1,8 +1,10 @@
 
 
-use role sysadmin;
+-- use role sysadmin;
 use schema dev_db.clean_sch;
 use warehouse adhoc_wh;
+
+
 
 -- Step-1 Bangalore/Silkboard
 select 
@@ -19,7 +21,10 @@ where
 order by 
     measurement_hours;
 
--- Step-2 Missing Data (How to handle NA)
+
+
+
+-- Step-2 Missing Data (How to handle NA), , see below with case statment to create new cols.
 select 
     hour(index_record_ts) as measurement_hours,
     * 
@@ -32,7 +37,7 @@ where
     -- Mundka, Delhi - DPCC
     -- IGI Airport (T3), Delhi - IMD
 order by 
-    index_record_ts, id;
+    measurement_hours, id;
 
 -- No duplicate, the measurement is captured in clean way
 -- missing data observed
@@ -64,6 +69,8 @@ select
      group by 
         index_record_ts, country, state, city, station, latitude, longitude
         order by country, state, city, station;
+
+
 
 -- select * from air_quality_tmp
 select 
@@ -121,8 +128,12 @@ select
         END as O3_AVG,
     from air_quality_tmp;
 
+
+
+
 -- step-2
--- next task is to transpose it from rows to columns.
+-- next task is to transpose it from rows to columns in a dynamic table.
+-- the lag occurs 30 minutes after clean aqi dt is loaded.
 create or replace dynamic table clean_flatten_aqi_dt
     target_lag='30 min'
     warehouse=transform_wh

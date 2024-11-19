@@ -1,7 +1,8 @@
 /********************************************************************************
 Flatten, de-duplication and cleansing for clean layer.
 
-
+Here we are moving data from stage to clean layer and will do some flattening of the json files
+while cleaning for duplicastes. 
 
 ********************************************************************************/
 
@@ -11,38 +12,9 @@ Flatten, de-duplication and cleansing for clean layer.
 use schema dev_db.clean_sch;
 use warehouse adhoc_wh;
 
--- Ste-1
-select * from dev_db.stage_sch.raw_aqi order by id;
--- Step-2
-select id, index_record_ts, from dev_db.stage_sch.raw_aqi order by id;
 
--- Step-3
-select 
-    id, index_record_ts
-from 
-    dev_db.stage_sch.raw_aqi 
-where 
-    index_record_ts is not null;
-order by id;
 
--- Step-4
-select 
-    id,
-    index_record_ts,
-    json_data,
-    record_count,
-    json_version,
-    _stg_file_name,
-    _stg_file_load_ts,
-    _stg_file_md5 ,
-    _copy_data_ts
-from 
-    dev_db.stage_sch.raw_aqi 
-where 
-    index_record_ts is not null
-    limit 5;
-
--- Step 5 query without JSON data column
+--  query without JSON data column
 select 
     id,
     index_record_ts,
@@ -57,9 +29,10 @@ from
 where 
     index_record_ts is not null; -- this will give all 24 records
 
+
 -- now lets loads some duplicate data that is a common issue in some of the 
 -- data project and validate the scenario 
-
+-- activate task to load dups then suspend again
 select 
     id,
     index_record_ts,
@@ -81,7 +54,7 @@ where
 with air_quality_with_rank as (
     select 
         index_record_ts,
-        json_data,
+        json_data, -- this is the variant column that will be flattened
         record_count,
         json_version,
         _stg_file_name,
@@ -121,7 +94,8 @@ unique_air_quality_data as (
     lateral flatten (input => json_data:records) hourly_rec;
 
 
--- creating dynamic table
+
+-- creating dynamic table amd imsert data above into it.
 create or replace dynamic table clean_aqi_dt
     target_lag='downstream'
     warehouse=transform_wh

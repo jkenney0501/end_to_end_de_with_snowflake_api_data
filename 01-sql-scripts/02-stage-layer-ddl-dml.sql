@@ -93,7 +93,7 @@ from @dev_db.stage_sch.raw_stg
 create or replace transient table raw_aqi (
     id int primary key autoincrement,
     index_record_ts timestamp not null,
-    json_data variant not null,
+    json_data variant not null, -- this is the json data that we will clean later
     record_count number not null default 0,
     json_version text not null,
     -- audit columns for debugging
