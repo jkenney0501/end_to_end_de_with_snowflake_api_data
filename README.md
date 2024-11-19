@@ -16,7 +16,7 @@ Requirements:
 
 ### Layered Architecture
 <br/>
-<img src="assets\Layered-Architecture-Standard-Names.png" width="500"/>
+<img src="assets\Layered-Architecture-Standard-Names.png" width="750"/>
 
 The stage layer ingest the data to an internal stage.
 - once ingested, audit columns are added from the **metadata$filename** as _stg_file_name,      **metadata$FILE_LAST_MODIFIED** as _stg_file_load_ts, **metadata$FILE_CONTENT_KEY** as _stg_file_md5, and the **current_timestamp()** as _copy_data_ts is used for a load time capture. 
@@ -28,7 +28,7 @@ A task is created here to automate the ingestion.
 
 ### Stage & Clean Layer with All Attributes Before final Transpose
 <br/>
-<img src="assets\Table-Design+(Stage+++Clean+Layer).png" width="500"/>
+<img src="assets\Table-Design+(Stage+++Clean+Layer).png" width="750"/>
 
 Once staged, it is time to clean the daat and use dynamic tables for our transforms.
 
@@ -37,11 +37,11 @@ In this layer, we first **flatten** and **de-duplicate** the data (additional fi
 
 ### Stage to clean layer DAG
 <br/>
-<img src="assets/stg-clean-DAG.png" width="500"/>
+<img src="assets/stg-clean-DAG.png" width="750"/>
 
 
 
 
 ### Dimensional Model (Consumtion Layer)
 <br/>
-<img src="assets\Fact+&+Dim+Tables+(Consumption+Layer9.png" width="500"/>
+<img src="assets\Fact+&+Dim+Tables+(Consumption+Layer9.png" width="750"/>
