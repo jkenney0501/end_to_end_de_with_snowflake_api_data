@@ -1,10 +1,10 @@
-use role sysadmin;
+--use role sysadmin;
 use schema dev_db.consumption_sch;
 use warehouse adhoc_wh;
 
 
--- date dim
--- level-1 
+-- date dim, first dim
+-- what is the measurement on a particular dy, qurter, hour etc...
 select 
         index_record_ts as measurement_time,
         year(index_record_ts) as aqi_year,
@@ -15,6 +15,8 @@ select
     from 
         dev_db.clean_sch.clean_flatten_aqi_dt
         group by 1,2,3,4,5,6;
+
+
 
 with step01_hr_data as (
 select 
@@ -29,12 +31,16 @@ select
         group by 1,2,3,4,5,6
 )
 select 
-    hash(measurement_time) as date_id,
+    hash(measurement_time) as date_id, -- creates a primary key
     *
 from step01_hr_data
 order by aqi_year,aqi_month,aqi_day,aqi_hour;
 
 
+
+
+-- create the actial dimension using the above queries
+create or replace dynamic table date_dim
 create or replace dynamic table date_dim
     target_lag='DOWNSTREAM'
     warehouse=transform_wh
@@ -57,6 +63,8 @@ select
 from step01_hr_data
 order by aqi_year,aqi_month,aqi_day,aqi_hour;
 
+
+-- see results from dynamic table
 select * from date_dim;
 
 
@@ -74,8 +82,8 @@ from
     dev_db.clean_sch.clean_flatten_aqi_dt
     group by 1,2,3,4,5,6;
 
--- step-2 with 
 
+-- step-2 with 
 with step01_unique_data as (
 select 
     LATITUDE,
@@ -96,6 +104,7 @@ order by
     country, STATE, city, station;
 
 
+-- create location dim with query above 
 create or replace dynamic table location_dim
     target_lag='DOWNSTREAM'
     warehouse=transform_wh
@@ -120,7 +129,13 @@ order by
     country, STATE, city, station;
 
 
--- fact table
+-- check table
+select *
+from location_dim
+
+
+
+-- create the fact table in the same way, dial queries in then table
 -- step-01
 select 
         index_record_ts,
@@ -179,6 +194,9 @@ select
 select * from date_dim where date_id = 1635727249877756006;
 select * from location_dim where location_id = 3830234801511030131;
 
+
+
+-- create the table with above queries
 create or replace dynamic table air_quality_fact
     target_lag='30 min'
     warehouse=transform_wh
@@ -200,4 +218,9 @@ select
         else 0
         end
     as aqi
-    from dev_db.clean_sch.clean_flatten_aqi_dt
+    from dev_db.clean_sch.clean_flatten_aqi_dt;
+
+
+-- check fact
+select *
+from air_quality_fact;

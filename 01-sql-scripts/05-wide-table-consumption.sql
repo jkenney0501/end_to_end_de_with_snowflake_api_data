@@ -70,7 +70,7 @@ as '
 
 
 
-show dynamic tables;
+--show dynamic tables;
 create or replace dynamic table aqi_final_wide_dt
     target_lag='30 min'
     warehouse=transform_wh
