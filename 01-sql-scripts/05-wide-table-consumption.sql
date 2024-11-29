@@ -4,6 +4,8 @@ use warehouse adhoc_wh;
 
 drop dynamic table aqi_final_wide_dt;
 
+-- wide table approach adds two columns, prominent pollutant and the aqi based on aqi formula.
+
 create or replace function prominent_index(pm25 number, pm10 number, so2 number, no2 number, nh3 number, co number, o3 number)
 returns varchar
 language python
@@ -97,15 +99,15 @@ select
         o3_avg,
         prominent_index(pm25_avg,pm10_avg,so2_avg,no2_avg,nh3_avg,co_avg,o3_avg)as prominent_pollutant,
         case
-        when three_sub_index_criteria(pm25_avg,pm10_avg,so2_avg,no2_avg,nh3_avg,co_avg,o3_avg) > 2 then greatest (pm25_avg,pm10_avg,so2_avg,no2_avg,nh3_avg,co_avg,o3_avg)
-        else 0
-        end
-        as aqi
+            when three_sub_index_criteria(pm25_avg,pm10_avg,so2_avg,no2_avg,nh3_avg,co_avg,o3_avg) > 2 
+                then greatest (pm25_avg,pm10_avg,so2_avg,no2_avg,nh3_avg,co_avg,o3_avg)
+            else 0
+        end as aqi
     from dev_db.clean_sch.clean_flatten_aqi_dt;
 
---
+
 -- for missing data ..we can use lead or lag approach to fill the missing value
--- and that generally is done if we have some data scince workload.
+-- and that generally is done if we have some data since workload.
 -- for us, it is pure reporting, so we don't need to worry about.
 
 
@@ -145,7 +147,7 @@ select * from step02_with_lag_cte;
 
     
 
-    WITH PreviousData AS (
+WITH PreviousData AS (
     SELECT
         hour,
         temperature,

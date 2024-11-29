@@ -20,7 +20,7 @@ select
     index_record_ts,
     record_count,
     json_version,
-    _stg_file_name,
+    _stg_file_name, -- note the underscore prefix represents metdata columns
     _stg_file_load_ts,
     _stg_file_md5 ,
     _copy_data_ts
@@ -95,7 +95,7 @@ unique_air_quality_data as (
 
 
 
--- creating dynamic table amd imsert data above into it.
+-- creating dynamic table amd insert data above into it.
 create or replace dynamic table clean_aqi_dt
     target_lag='downstream'
     warehouse=transform_wh
