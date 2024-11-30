@@ -73,7 +73,7 @@ as '
 
 
 --show dynamic tables;
-create or replace dynamic table aqi_final_wide_dt
+create or replace dynamic table consumption_sch.aqi_final_wide_dt
     target_lag='30 min'
     warehouse=transform_wh
 as
