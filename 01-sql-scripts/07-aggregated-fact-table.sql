@@ -2,7 +2,7 @@ use role sysadmin;
 use schema dev_db.consumption_sch;
 use warehouse adhoc_wh;
 
--- step-01
+-- step-01 EDA
 select 
     d.measurement_time,
     l.state,
@@ -21,7 +21,7 @@ from
 group by 
     1,2,3;
 
--- step-02
+-- step-02 refine and add prominent pollutant recalc for groups
 with step01_city_level_data as (
 select 
     d.measurement_time,

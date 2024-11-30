@@ -1,11 +1,25 @@
 # End to End Data Engineering with Snowflake API (AQI) Data
 *Data Source:* <a href='https://data.gov.in'>data.gov.in</a>
 
-This project takes weather air quality data from an API and ingests the JSON files into Snowflake. 
-From here we target several layers to store, clean and transform the data for consumption while also creating a dimensional model and one big table example.
+*You may encounter registration issues outside of India but you can use the zipped data to load manually or use a different api and apply the concepts. The U.S. api's available did not produce what is needed for this project, at least not one I could easily find.*
+
+## Overview:
+This project takes weather air quality data from an API and ingests the JSON files into a Snowflake internal stage. Using an automated task (1 hour for api calls), the data will load from stage to a clean layer using dynamic tables. Once cleaned, we can transform and created a dimensional model (min-star schema) using dyanmic tables to automaticalkky udate as downstream tables. 
+
+Snowflake Engineering concepts applied are:
+- Snowpark API calls
+- Internal stage loads
+- Variant data type and extracts for JSON data
+- Automated Tasks
+- Dynamic Tables that refresh on a downstream lag
+- Dimensional modeling in SNF
+- Data Visualization with Streamlit
+
+
+
 
 ### Requirements:
-- Inegst API data.
+- Ingest API data.
 - Add audit columns to stage layer.
 - Transform JSON data to VARIANT.
 - Extract select dimension for location and select measures to create avergare AQI for 7 pollutants.
@@ -46,10 +60,11 @@ A task is created here to automate the ingestion. Below is what the table lookks
 - What will happen if we add more data?
     - Max variant column size is 16MB compressed per row in Snowflake.
     - File size for the seven mmetrics per hour per station is around 24 * 7 given we have 24 hours in a day which = 168kb
-    - If there are 500 stations then 500 * 168 = 84k. Convert this to MB and we have around 84k / 1024 for about 82MB per day for 500+ weather stations.
-    - This is a lot of data BUT thee are sevral points here:
-        - Each hour represents a row and is well witihn the limts of 16MB.
-        - Our max intake per day is generally around 82MB for all stations. Cloud storage can handle this without problems in either compute or storage. 
+    - If there are approximately 500 stations then 500 * 168 = 84k. Convert this to MB and we have around 84k / 1024 for about 82MB per day for 500+ weather stations.
+    - This is a lot of data BUT thee are several key points here:
+        - Each hour represents a variant row and is well within the limts of 16MB compressed.
+        - Our max intake per day is generally around 82MB for all stations. Cloud storage can handle this without problems. Snowflake overall can handle this easily in either compute or storage (using internal stage or external).
+    - They key here would be to understand the long term data approach. If data is collected for long term > 12-24 months, a long term capacity plan would need to be implemented such as an archive cold storage solution after N months or years to minimize costs. Historical trends are typiclaly analyzed in OLAP solutions and therefore we could certainly plan for 24 months minimum. 
 
 **Notable:** *we will reduce the above even further as the seven metrics will al be part of one  row after transforming the metrics from column attributes to columns which will reduce the size by a factor of six.*
 
@@ -103,10 +118,52 @@ Using dynamic tables with a 30 minute lag will allow us an automatic downstream 
 <img class="center-block" src="assets\manual_refresh_dynamic_tables.png" width="750"/>
 
 ## Creating the Aggregated Fact for User Consumption
-quick summary and screenshot.
+Why do we need to create an aggregated fact table?
+- The details are pre-compted in a summary making it quick to get summary results without the need of joining tables or doing calculations that may differ from one another and adhere to business rules/logic which provides conistency across the organization.
+- We can also aggregate on varous levels to make common BI easily accessible and transaprent to many groups.
+- Most notably, pre-aggregated data saves us a lot on compute costs!
 
-## Streamlit Data Visulaization
-add screenshot of dv for metrics
+This is created by using an average across the pollutants where we group by time, country, state, city and store the data in a dynamic table so it auto updates as a downstream table with a 30 minute lag. The data is aggregated at the city level with the granularity at the hour level.
+
+Example DAG for the entire process flow:
+<img class="center-block" src="assets\agg_fct_dag.png" width="750"/>
+
+To see the results before the dyanmic table created with city aggregation and time granularity we can use:
+```sql
+select 
+    * 
+from agg_city_fact_hour_level 
+where 
+    city = 'Bengaluru' and 
+    MEASUREMENT_TIME ='2024-03-04 11:00:00.000'
+order by 
+    country, state, city, measurement_time
+limit 100;
+```
+Filtering by one city will now produce one row:
+<img class="center-block" src="assets\agg_fct_by_city_row.png" width="750"/>
+
+Several other pre-aggregated facts are slow created to show:
+- Day level with AQI averages (the above is hourly, same aggregtion but granularity changes to day).
+
+Example DAG where DAG goes from 28.7k (hourly by city) results to 1.3k (daily by city) results with pre-aggregation.
+
+<img class="center-block" src="assets\agg_fct_day.png" width="750"/>
+
+## Streamlit Data Visualization
+Streamlit allows us to create visuals right inside of Snowflake. It connects via api and we can write code to produce a visualization of our data. Below are a few examples.
+
+Streamlit Stacked Bar - Search paramters
+- By adding some simple lines of code we can add select boxes for various parameters to search our data. Below shows a stacked bar with all pollutants that are hoverable to show values of the pollutant over a select date and city.
+
+<img class="center-block" src="assets\stacked_bar.png" width="750"/>
+
+<img class="center-block" src="assets/stacked_line.png" width="750"/>
+Trendline with Search Paramters (similar to above with select options)
+<img class="center-block" src="assets\trendline.png" width="750"/>
+
+Map
+<img class="center-block" src="assets\map.png" width="750"/>
 
 ## Automation with GitHub Actions
 quick summary and link to yml
