@@ -1,4 +1,4 @@
--- Marketplat data integration
+-- Marketplace data integration
 
 use role sysadmin;
 use schema dev_db.stage_sch;

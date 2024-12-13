@@ -20,6 +20,17 @@ From here, the clean layer will flatten the data out and prepare it for consumpt
 -- 16Mb limitations:
 
 
+****** Understanding Pseudocolumns
+What Are Pseudocolumns?: They are special columns provided by Snowflake that contain metadata about the data 
+files being queried.
+
+Common Pseudocolumns:
+METADATA$FILENAME: Name of the source file.
+METADATA$FILE_ROW_NUMBER: Row number within the source file.
+METADATA$ROW_COUNT: Total number of rows in the source file.
+METADATA$FILE_LAST_MODIFIED: Timestamp of the last modification of the source file.
+METADATA$FILE_SIZE: Size of the source file in bytes.
+
 *****************************************************************************************************/
 
 -- change context
@@ -33,13 +44,13 @@ directory = ( enable = true)
 comment = 'all the air quality raw data will store in this internal stage location';
 
 
- -- create file format to process the JSON file
+ -- create file format to process the JSON file given we are pulling api data that retiurns json files.
 create file format if not exists json_file_format 
 type = 'JSON'
 compression = 'AUTO' 
 comment = 'this is json file format object';
 
-
+-- view stage
 show stages;
 list @raw_stg;
 
@@ -50,7 +61,9 @@ list @raw_stg;
 list @raw_stg;
 
 
--- level-1, apply file format to be able t query the data directly from the stage
+
+-- the queries below are just testing the json data by querying it directly from the file in the stage.
+-- level-1, apply file format to be able to query the data directly from the stage
 select 
 
     * 
@@ -78,6 +91,7 @@ select
     t.$1,
     t.$1:total::int as record_count,
     t.$1:version::text as json_version,
+
     -- meta data information for files (always goes in stage)
     metadata$filename as _stg_file_name,
     metadata$FILE_LAST_MODIFIED as _stg_file_load_ts,
@@ -113,7 +127,7 @@ describe table raw_aqi;
 
 
 -- copy command
--- following copy command
+-- following copy command will query the stage directly on an automated cron job. From here it will load it to a stage raw_aqi with the added metadata columns.
 create or replace task copy_air_quality_data
     warehouse = load_wh
     schedule = 'USING CRON */5 * * * * Asia/Kolkata'  -- set to run every 5 minutes given there are 24 files, one for every hour. This load is all at once b/s manual load.
@@ -149,9 +163,6 @@ select *
     from raw_aqi
     limit 10;
 
-
-
-
 -- select with ranking to prpepare to eliminate dups in clean layer
 select 
     index_record_ts,record_count,
@@ -164,5 +175,5 @@ from raw_aqi
 order by index_record_ts desc
 limit 10;
 
--- suspend after initqal load given 24 files are laoded at once since they are all in the stage
+-- suspend after initial load given 24 files are loaded at once since they are all in the stage
 alter task dev_db.stage_sch.copy_air_quality_data suspend;

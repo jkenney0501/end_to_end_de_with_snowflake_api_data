@@ -164,7 +164,7 @@ step02_replace_na_cte as (
     select 
         INDEX_RECORD_TS,
         COUNTRY,
-        replace(STATE,'_',' ') as STATE,
+        replace(STATE,'_',' ') as STATE, --replaces underscore with empty string
         CITY,
         STATION,
         LATITUDE,
