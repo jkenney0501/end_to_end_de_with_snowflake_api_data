@@ -106,7 +106,7 @@ def get_air_quality_data(api_key, limit):
     #if comes to this line.. it will return nothing
     return None
 
-# Replace 'YOUR_API_KEY' with your actual API key
+# Replace 'YOUR_API_KEY' with your actual API key and maybe use a .env file
 api_key = '<add-app-api-key>'
 
 
