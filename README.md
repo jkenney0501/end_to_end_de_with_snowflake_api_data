@@ -61,10 +61,15 @@ Some common things to add before we start are an understanding to our scalibilit
 
     Other considerations:
 
-    **Cost-** If we this process runs once an hour at $3 a credit, we need to figure out our per minute cost for compute. Stakeholders like this appraoch generally. 
+    **Cost-** If we this process runs once an hour at $3 a credit, we need to figure out our per minute cost for compute. Stakeholders like this approach generally (TBH, I have not seen anyone b budget conscious in SNF, this will make you standout, be good at it!). 
     - Let's assume a x-small WH at 1 credit an hour which = $3.
-    - If we run our API (this is general and assuing regualr SNF compute) for 1 minute every hour (this assumes the entire process takes 1 minute which may or may not be true for everyones process), we have 60 minutes, this means $3 per credit translates to $3/60 min =  $0.05 per minute cost.  (I am calculating per mnute as an easy example to use)
-    - Next we apply this to our total run time whcih is 24 runs * 1 = 24 * 0.05 = $1.20 a day for compute cost or $36.00 monthly. This is likley more and only a simple example of what we may apply to get the approximate costs for our pipeline. There are other factors to consider and often we run with it and then optimize but this generally helps in the begining if we take a little time to apply it. Keep in mind, this was only factoring in the API, the other compute costs would be more as Snowflake bills at 1 minute minimums and our layered architecture will take sevral minutes as each process will almost certainly be billed for at least one minute so there would be a different multiplier involved here, You need to undertsand how many minutes each pipeline task/dynamic table is running for and total that to find your per minute cost.
+    - If we run our API (this is general and assuming regular SNF compute when snowpark would be used for API calls with python) for 1 minute every hour (this assumes the entire process takes 1 minute which may or may not be true for everyones process), we have 60 minutes, this means $3 per credit translates to $3/60 min =  $0.05 per minute cost.  (I am calculating per mnute as an easy example to use)
+    - Next we apply this to our total run time which is 24 runs * 1 min each = 24 * 0.05 = $1.20 a day for compute cost or $36.00 monthly. This is likley more and only a simple example of what we may apply to get the approximate costs for our pipeline. There are other factors to consider and often we run with it and then optimize but this generally helps in the begining if we take a little time to apply it. Keep in mind, this was only factoring in the API, the other compute costs would be more as Snowflake bills at 1 minute minimums and our layered architecture will take sevral minutes as each process will almost certainly be billed for at least one minute so there would be a different multiplier involved here, You need to undertsand how many minutes each pipeline task/dynamic table is running for and total that to find your per minute cost.
+
+    **Role Based Access Control**
+    - Largley important in controling costs
+    - Educating your downstream users whether it is walkthroughs or using confluence to document best practices for queries, metadata cache use and optimized queries (we dont want select * from guy hammerinf the compute costs everyday!!)
+    - Do a query audit evey so often and see what kinds of things are happening that you can improve on.
 
 **Notable:** *we will reduce the above even further as the seven metrics will al be part of one  row after transforming the metrics from column attributes to columns which will reduce the size by a factor of six.*
 
