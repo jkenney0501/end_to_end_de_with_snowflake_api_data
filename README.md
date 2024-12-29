@@ -124,7 +124,7 @@ Using dynamic tables with a 30 minute lag will allow us an automatic downstream 
 
 ### [Wide Table Approach]('1-sql-scripts\05-wide-table-consumption.sql)
 
-Why the wide fact table appraoach?
+Why the wide fact table approach?
 
 All the data is joined into one wide denormalized table. As a result, this approach is commonly called the “One Big Table”. This design takes advantage of the benefits of columnar databases like Snowflake and Google Big Query and makes it easier to query since all tables have been pre-joined. 
 
@@ -151,7 +151,7 @@ This is an extremely simple model but built to showcase the end result of an api
 - The dag below shows the dependencies of the dyamic tables with a 30 minute lag.
 - The fact and dims update from the clean and flatten table which updates from the clean whohc updates from the stage.
 
-<img class="center-block" src="assets\FACT_DAG.png" width="1000"/>
+<img class="center-block" src="assets\fact_dag.png"/>
 
 
 ### Refresh Dynamic Tables with New Data: mimick the an automated process (or use it as with cron).
@@ -206,10 +206,10 @@ Streamlit Stacked Bar - Search paramters
 <img class="center-block" src="assets\stacked_bar.png" />
 
 <img class="center-block" src="assets/stacked_line.png" />
-Trendline with Search Paramters (similar to above with select options)
+Trendline with Search Paramters (similar to above with select options):
 <img class="center-block" src="assets\trendline.png" />
 
-Map
+Map Example:
 
 <img class="center-block" src="assets\map.png" />
 
